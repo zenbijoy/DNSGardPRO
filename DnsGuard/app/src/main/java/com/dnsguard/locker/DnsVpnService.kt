@@ -22,9 +22,9 @@ import java.net.InetAddress
 /**
  * Standalone Local DNS VPN Engine.
  * Operates completely on-device without any external server, logging, or subscription.
- * Intercepts DNS queries on device and enforces KahfGuard safe DNS endpoints:
- *   - Primary IPv4: 203.190.10.118 (BDIX) / 185.228.168.10 (Global)
- *   - Secondary IPv4: 203.190.10.119 / 185.228.169.11
+ * Intercepts DNS queries on device and enforces AdGuard Family Protection endpoints (100% Adult & Ad Free):
+ *   - Primary IPv4: 94.140.14.15
+ *   - Secondary IPv4: 94.140.15.16
  *
  * 100% Google Play Store Compliant — requires NO PC, NO USB, NO Dhizuku.
  */
@@ -40,10 +40,9 @@ class DnsVpnService : VpnService() {
         private const val NOTIFICATION_ID = 8844
         private const val CHANNEL_ID = "dg_vpn_channel"
 
-        // Safe DNS Servers (KahfGuard Clean Family)
-        val PRIMARY_DNS_IPV4: String   = "203.190.10.118"
-        val SECONDARY_DNS_IPV4: String = "185.228.168.10"
-        val BACKUP_DNS_IPV4: String    = "185.228.169.11"
+        // Safe DNS Servers (AdGuard Family Protection: 100% Adult Blocker + 100% Ad & Tracker Blocker)
+        val PRIMARY_DNS_IPV4: String   = "94.140.14.15"
+        val SECONDARY_DNS_IPV4: String = "94.140.15.16"
 
         @Volatile
         var isRunning: Boolean = false
@@ -91,18 +90,16 @@ class DnsVpnService : VpnService() {
         if (isRunning) return
         try {
             val builder = Builder()
-                .setSession("DnsGuard Safe Shield")
+                .setSession("DNSGuard Safe Shield")
                 .addAddress("10.200.0.2", 32)
                 .addDnsServer(PRIMARY_DNS_IPV4)
                 .addDnsServer(SECONDARY_DNS_IPV4)
-                .addDnsServer(BACKUP_DNS_IPV4)
                 .setBlocking(false)
                 .setMtu(1500)
 
             // Route exclusively to the safe DNS IP targets (preserves normal app speeds)
             builder.addRoute(PRIMARY_DNS_IPV4, 32)
             builder.addRoute(SECONDARY_DNS_IPV4, 32)
-            builder.addRoute(BACKUP_DNS_IPV4, 32)
 
             vpnInterface = builder.establish()
             if (vpnInterface != null) {
@@ -189,8 +186,8 @@ class DnsVpnService : VpnService() {
 
     private fun buildNotification(): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("DnsGuard Protection Active")
-            .setContentText("Safe clean DNS enforced • 0 adult leaks")
+            .setContentTitle("DNSGuard PRO Active")
+            .setContentText("AdGuard Family Protection • 100% Adult & Ad Free")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)

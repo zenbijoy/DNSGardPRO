@@ -11,7 +11,7 @@ import java.net.InetAddress
  */
 object DnsDiagnosticHelper {
 
-    private const val TARGET_HOST = "high.kahfguard.com"
+    private const val TARGET_HOST = "family.adguard-dns.com"
 
     data class DiagnosticResult(
         val isConfigured: Boolean,
@@ -26,7 +26,9 @@ object DnsDiagnosticHelper {
         val currentMode = Settings.Global.getString(cr, "private_dns_mode") ?: "unknown"
         val currentHost = Settings.Global.getString(cr, "private_dns_specifier") ?: "none"
 
-        val isConfigured = currentMode == "hostname" && currentHost == TARGET_HOST
+        val isVpnActive = DnsVpnService.isRunning
+        val isConfigured = (currentMode == "hostname" && currentHost == TARGET_HOST) || isVpnActive
+        val activeHost = if (currentHost != "none" && currentHost.isNotEmpty()) currentHost else if (isVpnActive) TARGET_HOST else "none"
 
         var isResolving = false
         var latencyMs = -1L
@@ -48,8 +50,8 @@ object DnsDiagnosticHelper {
             isConfigured = isConfigured,
             isResolving = isResolving,
             latencyMs = latencyMs,
-            dnsMode = currentMode,
-            dnsHost = currentHost
+            dnsMode = if (isVpnActive) "DNS Shield (VPN)" else currentMode,
+            dnsHost = activeHost
         )
     }
 }

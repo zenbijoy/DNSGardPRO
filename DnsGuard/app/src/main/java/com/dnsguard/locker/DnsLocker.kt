@@ -14,7 +14,7 @@ import android.os.UserManager
  */
 object DnsLocker {
 
-    private const val TARGET_DNS      = "high.kahfguard.com"
+    private const val TARGET_DNS      = "family.adguard-dns.com"
     private const val DHIZUKU_PKG     = "com.rosan.dhizuku"
     private const val PREFS_NAME      = "dg_state"
     private const val KEY_IS_LOCKED   = "lk"

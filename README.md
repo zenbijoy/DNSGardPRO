@@ -50,7 +50,9 @@ graph LR
 ```
 
 1. **Step 1: Enable DNS Shield**
-   * Establishes a local on-device VPN loopback that forwards all DNS queries to [KahfGuard](https://kahfguard.com) family resolvers (`203.190.10.118`, `185.228.168.10`, `185.228.169.11`).
+   * Establishes a local on-device VPN loopback that forwards all DNS queries to **AdGuard Family Protection** (`family.adguard-dns.com`, `94.140.14.15`, `94.140.15.16`).
+   * **100% Adult Content Blocked:** Strict anti-porn filters + enforced SafeSearch across Google, Bing, DuckDuckGo & YouTube Restricted Mode.
+   * **100% Ad & Tracker Free:** Blocks video ads, invasive popups, malicious redirect networks, and tracking telemetry.
    * 1-tap standard Android VPN permission dialog.
 2. **Step 2: Prevent App Uninstall (Device Administrator)**
    * Registers DNSGuard PRO as an active Android Device Administrator.
@@ -68,7 +70,7 @@ graph LR
 
 | Defense Layer | Technology | Primary Role |
 | :--- | :--- | :--- |
-| **Layer 1: Network Shield** | `DnsVpnService` (Local Loopback) | Forces DNS to KahfGuard resolvers; blocks 10M+ adult and illicit domains on cellular and Wi-Fi. |
+| **Layer 1: Network Shield** | `DnsVpnService` (Local Loopback) | Forces DNS to AdGuard Family resolvers; blocks 10M+ adult and illicit domains + 100% ad & tracking networks. |
 | **Layer 2: App Immutability** | `DeviceAdminReceiver` (Android DPM) | Blocks standard OS uninstallation attempts. |
 | **Layer 3: Tamper Protection** | `GuardAccessibilityService` (100ms debounce) | Blocks settings tampering, clearing data, and deactivating admin rights. |
 | **Layer 4: Real-Time Watchdog** | `LockMonitorService` (`ContentObserver`) | Foreground service monitoring DNS settings mutations in real-time. |
@@ -85,7 +87,7 @@ DNSGuard PRO is more than a blocker; it is a mental fortitude operating system:
 * **💨 SOS Calm & Breathe Banner:** Instant access to a guided 4-4-4-4 Box Breathing exercise (Inhale 4s, Hold 4s, Exhale 4s, Hold 4s) with haptic feedback to calm the nervous system during dopamine spikes.
 * **📖 50-Story Daily Wisdom Vault:** Curated stoic and cognitive parables spanning *Self-Mastery, Urge Surfing, Dopamine Reset, Emotional Armor,* and *The Path of Resilience*.
 * **🏆 Journey Milestones:** Unlock badges across your journey (Day 1: Seedling of Resolve, Day 3: Fire Starter, Day 7: Iron Week, Day 14: Neural Rewire, Day 30: Silver Month, Day 90: Golden Pillar, Day 180: Diamond Will, Day 365: Transcendent Freedom).
-* **📡 Live DNS Shield Telemetry:** Real-time resolver diagnostic measuring network ping latency to `high.kahfguard.com` and verifying 100% protection status.
+* **📡 Live DNS Shield Telemetry:** Real-time resolver diagnostic measuring network ping latency to `family.adguard-dns.com` and verifying 100% protection status.
 * **🌅 Morning Focus & 🌙 Nightly Directives:** Automated notifications delivering daily motivation and reflective prompts.
 
 ---

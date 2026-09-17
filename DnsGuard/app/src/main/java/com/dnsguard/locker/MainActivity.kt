@@ -334,7 +334,7 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
                     stepNumber = 1,
                     icon = Icons.Default.Shield,
                     title = "1. Enable DNS Shield",
-                    description = "Forces private DNS to KahfGuard with local loopback.",
+                    description = "Forces AdGuard Family DNS (100% Adult & 100% Ad-Free).",
                     isComplete = isVpnActive || hasPermission,
                     actionButtonText = "Activate",
                     onAction = {
@@ -549,7 +549,7 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
             }
 
             SectionTitle("Active Restrictions")
-            RestrictionRow("DNS Shield → high.kahfguard.com",    isLocked)
+            RestrictionRow("DNS Shield → family.adguard-dns.com", isLocked)
             RestrictionRow("Device Administrator Protection",     isLocked)
             RestrictionRow("Tamper Protection (Accessibility)",   isLocked)
             RestrictionRow("Master PIN Session Security",         isLocked)

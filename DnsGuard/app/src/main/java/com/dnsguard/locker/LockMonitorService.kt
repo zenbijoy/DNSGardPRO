@@ -145,8 +145,8 @@ class LockMonitorService : Service() {
 
     private fun buildNotification(): Notification =
         NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("DNS Protected")
-            .setContentText("high.kahfguard.com • ${TimerManager.breakdown(TimerManager.getRemainingTime(this)).days}d remaining")
+            .setContentTitle("DNSGuard PRO Protected")
+            .setContentText("family.adguard-dns.com • ${TimerManager.breakdown(TimerManager.getRemainingTime(this)).days}d remaining")
             .setSmallIcon(android.R.drawable.ic_lock_lock)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .setOngoing(true)       // cannot be swiped away while foreground service runs

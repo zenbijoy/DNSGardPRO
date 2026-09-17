@@ -11,7 +11,7 @@ Your privacy is our core foundation. We believe that recovery tools must never c
 ## 1. Core Services & Permissions
 
 ### A. Android VpnService API
-* **Purpose:** DNSGuard PRO utilizes Android's `VpnService` API to establish a local, on-device loopback tunnel. This tunnel intercepts outbound DNS queries and routes them directly to secure, family-safe DNS resolvers (KahfGuard / Cloudflare Family / CleanBrowsing) to block pornographic, adult, and malicious websites.
+* **Purpose:** DNSGuard PRO utilizes Android's `VpnService` API to establish a local, on-device loopback tunnel. This tunnel intercepts outbound DNS queries and routes them directly to secure, family-safe DNS resolvers (**AdGuard Family Protection**: `family.adguard-dns.com`, `94.140.14.15`, `94.140.15.16`) to block 100% of adult, explicit, and illicit domains, as well as 100% of ads, tracking networks, and malicious popups.
 * **No Remote Traffic Routing:** The VPN operates **locally on your device**. None of your web traffic, browsing data, IP packets, or application usage is redirected to any remote proxy or commercial VPN server operated by us.
 * **No Logging:** We do not log, inspect, analyze, or store your DNS queries or browsing history.
 
@@ -40,7 +40,7 @@ Your privacy is our core foundation. We believe that recovery tools must never c
 ## 3. Network Communication
 
 The only outbound network requests performed by the App are:
-1. Standard DNS queries routed to safe public resolvers (KahfGuard: `203.190.10.118`, `185.228.168.10`, `185.228.169.11`) to resolve web domain names while filtering adult material.
+1. Standard DNS queries routed to safe public resolvers (AdGuard Family Protection: `94.140.14.15`, `94.140.15.16`, `family.adguard-dns.com`) to resolve web domain names while filtering adult material and advertisements.
 2. Lightweight Network Time Protocol (NTP) requests (`pool.ntp.org` / `time.google.com`) once every 6 hours via WorkManager to ensure device clock integrity against manual time tampering.
 
 ---
