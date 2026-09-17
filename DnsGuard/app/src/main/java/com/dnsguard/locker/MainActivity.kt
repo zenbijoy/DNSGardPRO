@@ -159,6 +159,7 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
     var showWisdomVault by remember { mutableStateOf(false) }
     var showCommitmentDialog by remember { mutableStateOf(false) }
     var showAccessibilityDisclosure by remember { mutableStateOf(false) }
+    var showUrgeSurfingDialog by remember { mutableStateOf(false) }
 
     val vpnLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -194,8 +195,8 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
         }
     }
 
-    // Daily quote
-    val quote = remember { QuoteManager.todayQuote() }
+    // Daily quote (refreshable)
+    var currentQuote by remember { mutableStateOf(QuoteManager.todayQuote()) }
 
     // Progress fraction
     val progress = remember(remainingTime) { TimerManager.progressFraction(activity) }
@@ -279,6 +280,9 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
                 // ── Quick SOS Calm & Breathe Banner ───────────────────────
                 CalmActionBanner(onOpenBreathing = { showBreathingDialog = true })
 
+                // ── Urge Surfing Emergency Protocol Banner ────────────────
+                UrgeSurfingActionBanner(onOpenUrgeSurfing = { showUrgeSurfingDialog = true })
+
                 // ── Live DNS Shield Telemetry ─────────────────────────────
                 DnsTelemetryCard(activity = activity)
 
@@ -300,6 +304,9 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
                 // ── Locked Status Banner ───────────────────────────────────
                 LockedInfo()
 
+                // ── Urge Surfing Protocol (Emergency Relapse Intervention) ──
+                UrgeSurfingActionBanner(onOpenUrgeSurfing = { showUrgeSurfingDialog = true })
+
                 // ── Accessibility Guard Status ────────────────────────────
                 AccessibilityGuardCard(
                     state    = accessibilityState,
@@ -316,11 +323,14 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
                 DailyWisdomStoryCard(onOpenVault = { showWisdomVault = true })
 
                 // ── Feature 8: Daily quote card ────────────────────────────
-                QuoteCard(quote = quote)
+                QuoteCard(quote = currentQuote, onRefresh = { currentQuote = QuoteManager.getRandomQuote() })
 
             } else {
                 // ── Standalone 3-Step Setup Wizard ─────────────────────────
                 SeriousWarningBanner()
+
+                // ── Urge Surfing Protocol Banner (also available before locking)
+                UrgeSurfingActionBanner(onOpenUrgeSurfing = { showUrgeSurfingDialog = true })
 
                 Text(
                     "Complete all 3 steps below to seal protection:",
@@ -422,9 +432,13 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
 
                 // Daily Story & Quote previews
                 DailyWisdomStoryCard(onOpenVault = { showWisdomVault = true })
-                QuoteCard(quote = quote)
+                QuoteCard(quote = currentQuote, onRefresh = { currentQuote = QuoteManager.getRandomQuote() })
             }
         }
+    }
+
+    if (showUrgeSurfingDialog) {
+        UrgeSurfingDialog(onDismiss = { showUrgeSurfingDialog = false })
     }
 
     if (showBreathingDialog) {
@@ -671,23 +685,114 @@ private fun ProgressRingCard(progress: Float, remainingMs: Long) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Feature 8: Daily Quote Card
+// Emergency: Urge Surfing Protocol Action Banner
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun QuoteCard(quote: QuoteManager.Quote) {
+private fun UrgeSurfingActionBanner(onOpenUrgeSurfing: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1E1428),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, Color(0xFF9C27B0).copy(alpha = 0.45f), RoundedCornerShape(16.dp))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xFF9C27B0).copy(alpha = 0.25f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Waves,
+                    contentDescription = null,
+                    tint = Color(0xFFCE93D8),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Emergency: Urge Surfing",
+                    color = Color(0xFFF3E5F5),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "High craving? Ride the 15-minute neurochemical wave without giving in.",
+                    color = Color(0xFFCE93D8),
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Button(
+                onClick = onOpenUrgeSurfing,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF9C27B0),
+                    contentColor = Color.White
+                ),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Surf", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Feature 8: Daily Quote Card (Refreshable Mental Armor)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun QuoteCard(
+    quote: QuoteManager.Quote,
+    onRefresh: () -> Unit
+) {
     Surface(
         shape    = RoundedCornerShape(16.dp),
         color    = BgCard,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.FormatQuote, contentDescription = null,
-                    tint = AccentBlue, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(6.dp))
-                Text("Today's Motivation", color = AccentBlue,
-                    fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.FormatQuote,
+                        contentDescription = null,
+                        tint = AccentBlue,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        "Mental Armor & Wisdom",
+                        color = AccentBlue,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 0.8.sp
+                    )
+                }
+                IconButton(
+                    onClick = onRefresh,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = "New Quote",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
             }
             Text(
                 text       = "\"${quote.text}\"",
@@ -696,13 +801,30 @@ private fun QuoteCard(quote: QuoteManager.Quote) {
                 fontStyle  = FontStyle.Italic,
                 lineHeight = 19.sp
             )
-            Text(
-                text      = "— ${quote.author}",
-                color     = TextSecondary,
-                fontSize  = 11.sp,
-                modifier  = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.End
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    color = AccentBlue.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text(
+                        text = "RESILIENCE",
+                        color = AccentBlue,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+                Text(
+                    text      = "— ${quote.author}",
+                    color     = TextSecondary,
+                    fontSize  = 11.sp,
+                    textAlign = TextAlign.End
+                )
+            }
         }
     }
 }

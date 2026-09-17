@@ -49,6 +49,8 @@ class GuardAccessibilityService : AccessibilityService() {
         private val PROTECTED_APP_KEYWORDS = listOf(
             "system service",
             "dnsguard",
+            "dnsguard pro",
+            "dnsguard tamper protection",
             "dhizuku",
             "com.dnsguard.locker",
             "com.rosan.dhizuku"
@@ -68,16 +70,24 @@ class GuardAccessibilityService : AccessibilityService() {
             "privatedns",
             "deviceadmin",
             "masterclear",
-            "resetdashboard"
+            "resetdashboard",
+            "datetime",
+            "dateandtime",
+            "developermode",
+            "developmentsettings",
+            "vpndialogpreference"
         )
 
-        // Keywords that, if seen in Settings, indicate tampering with DNS, Admin, Storage, Accessibility, or Reset
+        // Keywords that, if seen in Settings, indicate tampering with DNS, Admin, Storage, Accessibility, Reset, or Clock
         private val BLOCKED_SETTINGS_KEYWORDS = listOf(
             "private dns",
             "dhizuku",
             "device owner",
-            "system service",           // app & accessibility service label
+            "system service",
             "dnsguard",
+            "dnsguard pro",
+            "dnsguard tamper protection",
+            "tamper protection",
             "com.dnsguard.locker",
             "guardaccessibilityservice",
             "com.rosan.dhizuku",
@@ -93,7 +103,17 @@ class GuardAccessibilityService : AccessibilityService() {
             "factory reset",
             "erase all data",
             "reset options",
-            "reset phone"
+            "reset phone",
+            "developer options",
+            "usb debugging",
+            "date & time",
+            "date and time",
+            "set time",
+            "set date",
+            "automatic date & time",
+            "use network-provided time",
+            "vpn",
+            "always-on vpn"
         )
 
         @Volatile
@@ -153,7 +173,11 @@ class GuardAccessibilityService : AccessibilityService() {
 
             val isDhizuku = pkg in BLOCKED_PACKAGES
             val isInstaller = pkg in INSTALLER_PACKAGES
-            val isSettings = pkg == "com.android.settings" || pkg.endsWith(".settings")
+            val isSettings = pkg == "com.android.settings" || 
+                             pkg.endsWith(".settings") || 
+                             pkg.contains("settings") || 
+                             pkg.contains("securitycenter") || 
+                             pkg.contains("safecenter")
 
             // FAST EXIT: Do zero work for unrelated apps (browsers, games, chat, launcher)
             if (!isDhizuku && !isInstaller && !isSettings) return
