@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="14dp">
+
+    <!-- Lock status -->
+    <TextView
+        android:id="@+id/widget_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔒 LOCKED"
+        android:textColor="#FFB300"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.08" />
+
+    <!-- Big day counter -->
+    <TextView
+        android:id="@+id/widget_days"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="365"
+        android:textColor="#ECECF1"
+        android:textSize="38sp"
+        android:textStyle="bold"
+        android:layout_marginTop="2dp" />
+
+    <!-- "DAYS REMAINING" label -->
+    <TextView
+        android:id="@+id/widget_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DAYS REMAINING"
+        android:textColor="#9090A8"
+        android:textSize="9sp"
+        android:letterSpacing="0.1" />
+
+    <!-- Hours / minutes / seconds -->
+    <TextView
+        android:id="@+id/widget_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="00h 00m 00s"
+        android:textColor="#9090A8"
+        android:textSize="11sp"
+        android:layout_marginTop="2dp" />
+
+    <!-- Progress bar -->
+    <ProgressBar
+        android:id="@+id/widget_progress"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_marginTop="10dp"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="#FFB300"
+        android:progressBackgroundTint="#3DFFB300" />
+
+</LinearLayout>

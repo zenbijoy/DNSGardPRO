@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="com.rosan.dhizuku.permission.API" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="System Service"
+        android:theme="@style/Theme.DnsGuard"
+        android:supportsRtl="true">
+
+        <!-- Hidden app — open only via *#*#1234#*#* -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SECRET_CODE" />
+                <data android:scheme="android_secret_code" android:host="1234" />
+            </intent-filter>
+        </activity>
+
+        <!-- Emergency Recovery Gate — open only via *#*#7777#*#* -->
+        <activity
+            android:name=".EmergencyRecoveryActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SECRET_CODE" />
+                <data android:scheme="android_secret_code" android:host="7777" />
+            </intent-filter>
+        </activity>
+
+        <!-- Dialer Secret Code Receiver (catches *#*#1234#*#* & *#*#7777#*#* from Google Phone dialer) -->
+        <receiver
+            android:name=".SecretCodeReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SECRET_CODE" />
+                <data android:scheme="android_secret_code" android:host="1234" />
+                <data android:scheme="android_secret_code" android:host="7777" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.dnsguard.locker.TRIGGER_SECRET_CODE" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Device Admin -->
+        <receiver
+            android:name=".MyDeviceAdminReceiver"
+            android:permission="android.permission.BIND_DEVICE_ADMIN"
+            android:exported="true">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Boot receiver — restores all layers after restart (priority 999 = runs first) -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true"
+            android:directBootAware="true">
+            <intent-filter android:priority="999">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.LOCKED_BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- AlarmManager receiver — fires every 15 min -->
+        <receiver
+            android:name=".LockReApplyReceiver"
+            android:exported="false" />
+
+        <!-- Nightly encouragement & focus receiver — fires every night at 9:30 PM -->
+        <receiver
+            android:name=".NightlyNotificationReceiver"
+            android:exported="false" />
+
+        <!-- Morning focus directive receiver — fires every morning at 8:00 AM -->
+        <receiver
+            android:name=".MorningNotificationReceiver"
+            android:exported="false" />
+
+        <!-- Foreground service — ContentObserver real-time DNS watchdog -->
+        <service
+            android:name=".LockMonitorService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false"
+            android:stopWithTask="false" />
+
+        <!-- Accessibility service — blocks Dhizuku UI, DNS Settings, and Self-Tampering -->
+        <service
+            android:name=".GuardAccessibilityService"
+            android:label="System Service"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
+        </service>
+
+        <!-- Widget -->
+        <receiver
+            android:name=".CountdownWidget"
+            android:exported="true"
+            android:label="DnsGuard Countdown">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/appwidget_info" />
+        </receiver>
+
+    </application>
+</manifest>
