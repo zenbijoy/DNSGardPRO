@@ -306,6 +306,7 @@ graph LR
 | **Layer 7: Cryptographic Timer** | `EncryptedSharedPreferences` (AES-256) | Triple-redundant encrypted storage for high-water marks and countdown progress. |
 | **Layer 8: Urge Surfing Emergency** | `UrgeSurfingDialog` (Compose) | 15-minute neurochemical craving surge barrier with guided 4-4 breathing and mental armor. |
 | **Layer 9: Optional Strictness** | `SecurityPreferences` (User Toggle) | Configurable blocking of Developer Options & USB Debugging (default OFF so USB charging, Android Auto, and OTG data work freely). |
+| **Layer 10: Discreet Camouflage** | `CamouflageManager` (`activity-alias`) | 100% Play Store-compliant dynamic launcher disguise (Official Brand, Habit Tracker, Study Focus, Health Pulse, Math Tools). |
 
 ---
 
@@ -327,6 +328,13 @@ DNSGuard PRO is more than a blocker; it is an operating system for mental discip
   * 💎 **Day 180:** Diamond Will
   * 👑 **Day 365:** Transcendent Freedom
 * **📡 Live DNS Shield Telemetry:** Real-time resolver diagnostic measuring network ping latency to `family.adguard-dns.com` and verifying 100% protection status.
+* **🎭 Discreet App Camouflage & Disguise:** Provides users with privacy by allowing them to disguise the app's launcher identity:
+  * 🛡️ **DNSGuard PRO (Default):** Official cyber shield and globe brand logo.
+  * 📋 **Habit Tracker:** Productivity routine checkmark icon and label.
+  * 📚 **Study Focus:** Academic open notebook and focus star icon and label.
+  * 💓 **Health Pulse:** Wellness ECG heartbeat monitor icon and label.
+  * 📐 **Math Tools:** Minimalist arithmetic calculator utility icon and label.
+  * *100% Google Play Policy Compliant:* Uses standard Android `activity-alias` architecture without dangerous call interception permissions or hidden apk behavior.
 
 ---
 

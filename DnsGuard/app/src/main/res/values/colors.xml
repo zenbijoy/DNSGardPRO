@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="camo_habit_bg">#1E1432</color>
+    <color name="camo_study_bg">#0D253F</color>
+    <color name="camo_health_bg">#0A2D1E</color>
+    <color name="camo_calc_bg">#23232A</color>
+</resources>

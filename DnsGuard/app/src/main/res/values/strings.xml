@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DNSGuard PRO</string>
+    <string name="camo_habit_name">Habit Tracker</string>
+    <string name="camo_study_name">Study Focus</string>
+    <string name="camo_health_name">Health Pulse</string>
+    <string name="camo_calc_name">Math Tools</string>
+</resources>

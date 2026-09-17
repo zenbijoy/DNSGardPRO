@@ -12,14 +12,17 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -226,9 +229,15 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Shield, contentDescription = null, tint = AccentGold)
-                        Spacer(Modifier.width(8.dp))
-                        Text("DnsGuard", fontWeight = FontWeight.Bold, color = TextPrimary)
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_brand_logo),
+                            contentDescription = "Brand Logo",
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text("DNSGuard PRO", fontWeight = FontWeight.Bold, color = TextPrimary)
                     }
                 },
                 actions = {
@@ -513,6 +522,10 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
     var isBlockDevOptions by remember {
         mutableStateOf(SecurityPreferences.isBlockDeveloperOptionsEnabled(activity))
     }
+    var activeCamo by remember {
+        mutableStateOf(CamouflageManager.getActiveMode(activity))
+    }
+    var showCamoDialog by remember { mutableStateOf(false) }
 
     val yearPassed = TimerManager.isYearPassed(activity)
     val bd         = remember(remainingTime) { TimerManager.breakdown(remainingTime) }
@@ -620,6 +633,56 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
                 }
             }
 
+            SectionTitle("Discreet App Disguise & Camouflage")
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = BgCard,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = activeCamo.iconRes),
+                        contentDescription = activeCamo.displayName,
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
+                    Spacer(Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = activeCamo.displayName,
+                            color = TextPrimary,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = activeCamo.subtitle,
+                            color = TextSecondary,
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp
+                        )
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = { showCamoDialog = true },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = AccentGold.copy(alpha = 0.2f),
+                            contentColor = AccentGold
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Text("Change", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
             SectionTitle("Background Protection")
             RestrictionRow("Boot auto-start (BootReceiver)",      isLocked)
             RestrictionRow("NTP sync every 6 hours (WorkManager)", isLocked)
@@ -674,6 +737,153 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
                         modifier = Modifier.fillMaxWidth())
                 }
                 else -> Text("Nothing to unlock — DNS is not currently locked.", color = TextSecondary)
+            }
+        }
+    }
+
+    if (showCamoDialog) {
+        CamouflageSelectorDialog(
+            currentMode = activeCamo,
+            onSelect = { mode ->
+                showCamoDialog = false
+                if (mode != activeCamo) {
+                    val ok = CamouflageManager.setCamouflageMode(activity, mode)
+                    if (ok) {
+                        activeCamo = mode
+                        android.widget.Toast.makeText(
+                            activity,
+                            "App disguise set to ${mode.displayName}! Launcher icon will update shortly.",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+            },
+            onDismiss = { showCamoDialog = false }
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Camouflage Selector Dialog
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun CamouflageSelectorDialog(
+    currentMode: CamouflageManager.CamouflageMode,
+    onSelect: (CamouflageManager.CamouflageMode) -> Unit,
+    onDismiss: () -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = BgSurface,
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, AccentGold.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            "Discreet App Disguise",
+                            color = TextPrimary,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "Choose your home screen icon & name",
+                            color = TextSecondary,
+                            fontSize = 12.sp
+                        )
+                    }
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close", tint = TextSecondary)
+                    }
+                }
+
+                CamouflageManager.CamouflageMode.entries.forEach { mode ->
+                    val isSelected = mode == currentMode
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = if (isSelected) AccentGold.copy(alpha = 0.12f) else BgCard,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = if (isSelected) 1.5.dp else 0.5.dp,
+                                color = if (isSelected) AccentGold else TextSecondary.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .clickable { onSelect(mode) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = mode.iconRes),
+                                contentDescription = mode.displayName,
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                            )
+                            Spacer(Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = mode.displayName,
+                                        color = if (isSelected) AccentGold else TextPrimary,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    if (mode == CamouflageManager.CamouflageMode.DEFAULT) {
+                                        Spacer(Modifier.width(6.dp))
+                                        Surface(
+                                            color = AccentGold.copy(alpha = 0.2f),
+                                            shape = RoundedCornerShape(4.dp)
+                                        ) {
+                                            Text(
+                                                "OFFICIAL",
+                                                color = AccentGold,
+                                                fontSize = 9.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Text(
+                                    text = mode.subtitle,
+                                    color = TextSecondary,
+                                    fontSize = 12.sp
+                                )
+                            }
+                            if (isSelected) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = "Selected",
+                                    tint = AccentGold,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Text(
+                    "Note: Android launchers may take 5–10 seconds to update the icon on your home screen.",
+                    color = TextSecondary.copy(alpha = 0.7f),
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
             }
         }
     }

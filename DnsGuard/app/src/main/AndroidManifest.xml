@@ -19,20 +19,94 @@
         android:theme="@style/Theme.DnsGuard"
         android:supportsRtl="true">
 
-        <!-- Main Activity — standard launcher entry for Play Store + dialer code support -->
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.provider.Telephony.SECRET_CODE" />
                 <data android:scheme="android_secret_code" android:host="1234" />
             </intent-filter>
         </activity>
+
+        <!-- Default Launcher Entry (Official Brand Shield Logo & Name) -->
+        <activity-alias
+            android:name=".MainActivityDefault"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/app_name"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Camouflage Option 1: Habit Tracker -->
+        <activity-alias
+            android:name=".MainActivityHabit"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_habit"
+            android:roundIcon="@mipmap/ic_launcher_habit_round"
+            android:label="@string/camo_habit_name"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Camouflage Option 2: Study Focus -->
+        <activity-alias
+            android:name=".MainActivityStudy"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_study"
+            android:roundIcon="@mipmap/ic_launcher_study_round"
+            android:label="@string/camo_study_name"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Camouflage Option 3: Health Pulse -->
+        <activity-alias
+            android:name=".MainActivityHealth"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_health"
+            android:roundIcon="@mipmap/ic_launcher_health_round"
+            android:label="@string/camo_health_name"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+
+        <!-- Camouflage Option 4: Math Tools -->
+        <activity-alias
+            android:name=".MainActivityCalc"
+            android:targetActivity=".MainActivity"
+            android:icon="@mipmap/ic_launcher_calc"
+            android:roundIcon="@mipmap/ic_launcher_calc_round"
+            android:label="@string/camo_calc_name"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Emergency Recovery Gate — open only via *#*#7777#*#* -->
         <activity

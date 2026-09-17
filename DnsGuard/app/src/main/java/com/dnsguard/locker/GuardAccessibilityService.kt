@@ -53,7 +53,11 @@ class GuardAccessibilityService : AccessibilityService() {
             "dnsguard tamper protection",
             "dhizuku",
             "com.dnsguard.locker",
-            "com.rosan.dhizuku"
+            "com.rosan.dhizuku",
+            "habit tracker",
+            "study focus",
+            "health pulse",
+            "math tools"
         )
 
         // Settings activity classes to block
