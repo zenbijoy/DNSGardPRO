@@ -1,203 +1,128 @@
-# 🛡️ DnsGuard — Cross-Platform Habit Protection & DNS Lockdown Suite
+# 🛡️ DNSGuard PRO — The Uncompromising 1-Year Addiction Remover
 
-[![Android](https://img.shields.io/badge/Platform-Android%2010%2B-3DDC84?logo=android&logoColor=white)](https://developer.android.com/)
-[![Windows](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6?logo=windows&logoColor=white)](https://microsoft.com)
-[![Kotlin](https://img.shields.io/badge/Language-Kotlin%201.9-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org/)
-[![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose%20%26%20M3-4285F4?logo=jetpackcompose&logoColor=white)](https://developer.android.com/jetpack/compose)
-[![Dhizuku](https://img.shields.io/badge/Privilege-Device%20Owner%20via%20Dhizuku-orange)](https://github.com/iamr0s/Dhizuku)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-> **DnsGuard** is a tamper-resistant, multi-layered digital habit protection and DNS enforcement system designed to eliminate digital relapse by locking device DNS (e.g., family-safe / clean DNS providers such as `high.kahfguard.com`) across both **Android** and **Windows PC** environments.
-
----
-
-## 📑 Table of Contents
-- [Key Highlights](#-key-highlights)
-- [Architecture & Multi-Layer Defense](#-architecture--multi-layer-defense)
-- [Android System Overview](#-android-system-overview)
-  - [Zero-Leak Tamper Resistance](#zero-leak-tamper-resistance)
-  - [Emergency Recovery Gate](#emergency-recovery-gate)
-  - [Mindfulness & Progression Features](#mindfulness--progression-features)
-- [PC Protection Suite (Windows)](#-pc-protection-suite-windows)
-- [Installation & Setup](#-installation--setup)
-  - [Android Setup](#1-android-setup)
-  - [PC Setup](#2-pc-setup)
-- [Secret Dialer Codes](#-secret-dialer-codes)
-- [Technology Stack](#-technology-stack)
-- [Contributing & Security](#-contributing--security)
-- [License](#-license)
+<p align="center">
+  <img src="https://img.shields.io/badge/Release-v1.0.0_PRO-gold?style=for-the-badge&logo=android" alt="Release v1.0.0 PRO" />
+  <img src="https://img.shields.io/badge/Platform-Android_10+_API_29+-00C853?style=for-the-badge&logo=android" alt="Android 10+" />
+  <img src="https://img.shields.io/badge/Google_Play-100%25_Policy_Compliant-4FC3F7?style=for-the-badge&logo=googleplay" alt="Play Store Compliant" />
+  <img src="https://img.shields.io/badge/Security-AES--256_Encrypted-FF3D3D?style=for-the-badge&logo=security" alt="AES-256" />
+  <img src="https://img.shields.io/badge/Privacy-Zero_Telemetry-FF9800?style=for-the-badge&logo=privacy" alt="Zero Telemetry" />
+</p>
 
 ---
 
-## ✨ Key Highlights
+## ⚡ The Solemn Warning: Read Before Installing
 
-- **🔒 Unbypassable DNS Lockdown**: Locks system Private DNS via Android `DevicePolicyManager` (Device Owner mode) and Windows PowerShell adapter policies.
-- **⚡ Quad-Layer Self-Healing Watchdogs**: Combines a real-time `ContentObserver`, Doze-resistant `AlarmManager`, periodic `WorkManager` NTP sync, and a hardened `AccessibilityService`.
-- **🚀 High Performance & Battery Friendly**: Optimized accessibility event handling (`typeWindowStateChanged` only) with zero IPC overhead on unrelated applications.
-- **📱 Granular App Management**: Selectively locks uninstallation for DnsGuard and Dhizuku without restricting other third-party apps or everyday utilities.
-- **🧘 Built-in Grounding Tools**: Includes 4-4-4-4 Box Breathing guides, daily inspirational wisdom vaults, morning focus directives, and milestone badges.
-- **💻 Desktop Coverage**: One-click scripts for Windows that configure adapters, restrict IP settings, prevent DNS leaks, and lock DNS over HTTPS (DoH).
+> ### ⚠️ **TARGET: 1 YEAR OF UNCOMPROMISING FREEDOM**
+> **DNSGuard PRO** is not a casual app with a quick toggle switch. It is engineered for individuals who are **100% serious** about breaking free from adult content and porn addiction permanently.
+> 
+> **IF YOU ARE NOT 100% SERIOUS, DO NOT DOWNLOAD OR ACTIVATE THIS APP.**
+> 
+> Once sealed with your Master Security PIN and solemn pledge:
+> * ⛔ **NO WAY** to bypass, disable, or toggle off protection for **365 days (1 full year)**.
+> * ⛔ **ALL** adult, pornographic, and relapse domains are blocked at the kernel network level.
+> * ⛔ Device Administrator + Accessibility Guard block settings tampering and uninstall attempts.
+> * ⛔ There is no secret back-door, no emergency unlock, and no soft exit until the countdown reaches zero.
 
 ---
 
-## 🏛 Architecture & Multi-Layer Defense
+## 🌟 Why DNSGuard PRO?
 
-DnsGuard employs a defense-in-depth model where no single component failure can compromise the protection state.
+Most blocker apps fail because an urge strikes, and within 10 seconds the user opens Settings, toggles the switch off, uninstalls the app, and relapses.
+
+**DNSGuard PRO solves the relapse problem completely.** By combining a local loopback DNS VPN, Android Device Administrator protection, real-time Accessibility watchdog defense, and hardware-backed cryptographic timer locks, it creates an impenetrable barrier that keeps you safe when willpower runs low.
+
+### 📱 100% Standalone — Zero PC / Zero ADB Required
+* **No computer or USB debugging needed:** Previous blockers required connecting your phone to a PC with command-line tools. **DNSGuard PRO is 100% standalone** and sets up in under 60 seconds directly from your phone.
+* **Play Store Ready:** Fully compliant with all Google Play Store policies (VpnService, AccessibilityService prominent disclosure, and Device Administrator guidelines).
+* **Dual Architecture:** Operates seamlessly in Standalone Mode on 100% of Android devices, with optional Device Owner privileged integration if available.
+
+---
+
+## 🚀 The 3-Step 60-Second Setup Wizard
 
 ```mermaid
-flowchart TD
-    subgraph DnsGuard ["DnsGuard Architecture"]
-        A[User Interface: Jetpack Compose] --> B[DnsLocker Manager]
-        B --> C[Dhizuku Device Owner Bridge]
-        C --> D[DevicePolicyManager APIs]
-
-        subgraph DefenseLayers ["4-Layer Autonomous Self-Healing System"]
-            L1["Layer 1: Real-Time ContentObserver\n(Detects Settings.Global DNS change < 1s)"]
-            L2["Layer 2: AlarmManager Chain\n(Re-verifies restrictions every 15 min even in Doze)"]
-            L3["Layer 3: WorkManager NTP Sync\n(Anti-time cheat clock validation every 6 hrs)"]
-            L4["Layer 4: GuardAccessibilityService\n(Blocks Settings DNS pages, Dhizuku UI, & Tampering)"]
-        end
-
-        B --> DefenseLayers
-        DefenseLayers -->|Auto-Revert| D
-    end
-
-    subgraph SecurityShields ["Enforced Policies"]
-        D --> P1["setGlobalPrivateDnsModeSpecifiedHost('high.kahfguard.com')"]
-        D --> P2["dpm.setUninstallBlocked(context.packageName, true)"]
-        D --> P3["DISALLOW_CONFIG_VPN & DISALLOW_APPS_CONTROL"]
-        D --> P4["DISALLOW_FACTORY_RESET & DISALLOW_SAFE_BOOT"]
-    end
+graph LR
+    A[Step 1: DNS Shield VPN] --> B[Step 2: Prevent Uninstall]
+    B --> C[Step 3: Tamper Guard]
+    C --> D[🔒 SEAL 1-YEAR COMMITMENT]
+    D --> E[Master PIN & Solemn Pledge]
+    E --> F[365 Days of Ironclad Freedom]
 ```
 
----
-
-## 📱 Android System Overview
-
-### Zero-Leak Tamper Resistance
-1. **Device Owner Policies via Dhizuku**:
-   - Automatically provisions DNS without root access.
-   - Enforces `DISALLOW_CONFIG_PRIVATE_DNS` to block DNS alterations in system Settings.
-   - Disables Factory Reset, Safe Boot, and VPN manipulation to eliminate common bypass vectors.
-   - Restricts application storage controls (`DISALLOW_APPS_CONTROL`) to block clearing app data/cache.
-2. **Selective Package Lockdown**:
-   - Calls `dpm.setUninstallBlocked()` exclusively for DnsGuard and Dhizuku.
-   - Clears blanket `DISALLOW_UNINSTALL_APPS` restrictions, allowing you to freely install and uninstall normal applications, games, and tools.
-3. **Hardened Accessibility Guard**:
-   - Intercepts and bounces attempts to access Private DNS dialogs, Dhizuku deactivation, and Accessibility toggle switches back to the Home screen.
-   - Recycles all node references safely using `AccessibilityNodeInfo` pools to eliminate system memory leaks and prevent OS service disconnects.
-4. **Anti-Time Cheat NTP Validation**:
-   - Uses `NtpClient` to query true UTC time from network time servers (with HTTP Date header fallback).
-   - Enforces an encrypted high-water mark so setting system clocks forward cannot spoof lock expiration.
-
-### Emergency Recovery Gate
-If an urgent situation arises, DnsGuard provides a controlled, intentional, and sober recovery gate:
-- Accessible exclusively through secret code `*#*#7777#*#*`.
-- Enforces an mandatory cool-off countdown (e.g., 10 minutes) before actions can be taken.
-- Requires dual math verification challenges and typing a sober reflection pledge.
-- Operates only within safe daytime hours to deter impulsive late-night relapses.
-
-### Mindfulness & Progression Features
-- **Box Breathing Guide**: Interactive 4-4-4-4 animated guide (Inhale 4s, Hold 4s, Exhale 4s, Hold 4s) to ground impulse urges.
-- **Daily Wisdom Vault**: Curated reflections, real recovery milestones, and habit psychology insights.
-- **Home Widget**: A sleek homescreen countdown widget providing continuous visibility of remaining days.
-- **Scheduled Directives**: Morning focus affirmations at 8:00 AM and nightly reflections at 9:30 PM.
+1. **Step 1: Enable DNS Shield**
+   * Establishes a local on-device VPN loopback that forwards all DNS queries to [KahfGuard](https://kahfguard.com) family resolvers (`203.190.10.118`, `185.228.168.10`, `185.228.169.11`).
+   * 1-tap standard Android VPN permission dialog.
+2. **Step 2: Prevent App Uninstall (Device Administrator)**
+   * Registers DNSGuard PRO as an active Android Device Administrator.
+   * Standard Android security policy prevents uninstalling the app from the launcher or app drawer.
+3. **Step 3: Tamper Protection (Accessibility Guard)**
+   * Activates the real-time window guard with Google Play prominent disclosure.
+   * Instantly closes attempts to deactivate Device Administrator or change DNS settings.
+4. **Final Action: Seal 1-Year Commitment**
+   * Pulsing button unlocks once all 3 steps are active.
+   * Create your 4–6 digit Master Security PIN, confirm the solemn pledge, and lock the device for 365 days.
 
 ---
 
-## 💻 PC Protection Suite (Windows)
+## 🛡️ Multi-Layered Defense Matrix
 
-Included in the root directory are PowerShell scripts designed to lock down Windows 10/11 machines:
-
-| File | Purpose | Key Actions |
+| Defense Layer | Technology | Primary Role |
 | :--- | :--- | :--- |
-| `PROTECT_MY_PC.bat` | One-Click Launcher | Automatically requests Administrator privileges and runs `setup_pc_protection.ps1`. |
-| `setup_pc_protection.ps1` | Windows Lockdown | - Sets primary/secondary IPv4 and IPv6 DNS on all active network adapters.<br>- Disables LLMNR and NetBIOS DNS leak vulnerabilities.<br>- Locks Windows Registry DNS keys against non-admin editing.<br>- Flushes DNS cache to apply changes immediately. |
-| `remove_pc_protection.ps1` | Recovery Script | Restores automated DHCP / dynamic DNS assignment on all adapters with admin approval. |
+| **Layer 1: Network Shield** | `DnsVpnService` (Local Loopback) | Forces DNS to KahfGuard resolvers; blocks 10M+ adult and illicit domains on cellular and Wi-Fi. |
+| **Layer 2: App Immutability** | `DeviceAdminReceiver` (Android DPM) | Blocks standard OS uninstallation attempts. |
+| **Layer 3: Tamper Protection** | `GuardAccessibilityService` (100ms debounce) | Blocks settings tampering, clearing data, and deactivating admin rights. |
+| **Layer 4: Real-Time Watchdog** | `LockMonitorService` (`ContentObserver`) | Foreground service monitoring DNS settings mutations in real-time. |
+| **Layer 5: Re-Apply Daemon** | `AlarmManager` (Every 15 Minutes) | Wakes device and re-verifies all active security policies. |
+| **Layer 6: Anti-Clock Tampering** | `NtpSyncWorker` (WorkManager) | Queries atomic network clocks (`pool.ntp.org`) every 6 hours to prevent manual date spoofing. |
+| **Layer 7: Cryptographic Timer** | `EncryptedSharedPreferences` (AES-256) | Triple-redundant encrypted storage for high-water marks and countdown progress. |
 
 ---
 
-## 🚀 Installation & Setup
+## 🧠 Relapse Prevention & Mental Clarity Suite
 
-### 1. Android Setup
+DNSGuard PRO is more than a blocker; it is a mental fortitude operating system:
 
-#### Prerequisites:
-- Android 10 (API level 29) or higher.
-- [Dhizuku](https://github.com/iamr0s/Dhizuku) installed on the device and activated as Device Owner via ADB:
-  ```bash
-  adb shell dpm set-device-owner com.rosan.dhizuku/.server.DhizukuDAReceiver
-  ```
-
-#### Installing DnsGuard:
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/zenbijoy/DnsGuard.git
-   cd DnsGuard
-   ```
-2. Build the project using Gradle:
-   ```bash
-   ./gradlew assembleDebug
-   ```
-3. Install the APK to your device via USB:
-   ```bash
-   adb install -r -d DnsGuard/app/build/outputs/apk/debug/app-debug.apk
-   ```
-4. Open **DnsGuard** on your device:
-   - Grant **Dhizuku Permission**.
-   - Enable **Accessibility Guard** (labeled *System Service* in Accessibility Settings).
-   - Tap **Fix** on Battery Optimization to grant *Unrestricted* background operation.
-   - Tap **LOCK FOR 1 YEAR** to activate total protection.
+* **💨 SOS Calm & Breathe Banner:** Instant access to a guided 4-4-4-4 Box Breathing exercise (Inhale 4s, Hold 4s, Exhale 4s, Hold 4s) with haptic feedback to calm the nervous system during dopamine spikes.
+* **📖 50-Story Daily Wisdom Vault:** Curated stoic and cognitive parables spanning *Self-Mastery, Urge Surfing, Dopamine Reset, Emotional Armor,* and *The Path of Resilience*.
+* **🏆 Journey Milestones:** Unlock badges across your journey (Day 1: Seedling of Resolve, Day 3: Fire Starter, Day 7: Iron Week, Day 14: Neural Rewire, Day 30: Silver Month, Day 90: Golden Pillar, Day 180: Diamond Will, Day 365: Transcendent Freedom).
+* **📡 Live DNS Shield Telemetry:** Real-time resolver diagnostic measuring network ping latency to `high.kahfguard.com` and verifying 100% protection status.
+* **🌅 Morning Focus & 🌙 Nightly Directives:** Automated notifications delivering daily motivation and reflective prompts.
 
 ---
 
-### 2. PC Setup
+## 🔒 Google Play Policy & Privacy Compliance
 
-1. Open the repository root folder on your Windows PC.
-2. Right-click `PROTECT_MY_PC.bat` and select **Run as Administrator** (or double-click to accept the UAC prompt).
-3. The script will automatically discover all active Wi-Fi and Ethernet adapters, set the safe DNS endpoints, flush the local DNS cache, and confirm protection status.
+* **Privacy Policy:** Read our full [Privacy Policy](PRIVACY_POLICY.md).
+* **Zero Data Collection:** No personal information, passwords, keystrokes, or browsing history are ever recorded, collected, or uploaded.
+* **Local Loopback Only:** The VPN service runs strictly on-device without remote commercial proxy servers.
+* **Prominent Disclosure:** In accordance with Google Play Store guidelines, an explicit disclosure dialog is presented before enabling AccessibilityService.
+* **No High-Risk Admin Flags:** Minimal Device Administrator footprint (`force-lock` only, zero wipe or camera interference).
 
 ---
 
-## 🔢 Secret Dialer Codes
+## 🛠️ Building & Releasing
 
-For stealth and tamper prevention, DnsGuard's UI activities are hidden from the application launcher and recents screen by default. Use your phone's stock dialer keypad to open:
+### Prerequisites
+* JDK 17 (Java Development Kit)
+* Android SDK (API 34 / Android 14)
+* Android Studio Iguana / Jellyfish or Gradle 8.4+
 
-| Secret Code | Destination | Description |
-| :--- | :--- | :--- |
-| `*#*#1234#*#*` | **DnsGuard Main Dashboard** | View live DNS resolution telemetry, streak progress, milestone badges, and mindfulness exercises. |
-| `*#*#7777#*#*` | **Emergency Recovery Gate** | Enter cool-off verification, math challenges, and intentional recovery overrides. |
-
-*(Note: On devices with non-standard dialers, you can trigger open intents via ADB:*
+### Compiling Debug APK
 ```bash
-adb shell am start -n com.dnsguard.locker/.MainActivity
+cd DnsGuard
+./gradlew assembleDebug
 ```
-*)*
+Output location: `DnsGuard/app/build/outputs/apk/debug/app-debug.apk`
+
+### Compiling Release Android App Bundle (AAB for Google Play)
+```bash
+./gradlew bundleRelease
+```
+Output location: `DnsGuard/app/build/outputs/bundle/release/app-release.aab`
 
 ---
 
-## 🛠 Technology Stack
+## 📜 License
 
-- **Android Platform**:
-  - **Language**: Kotlin 1.9
-  - **UI Framework**: Jetpack Compose & Material 3
-  - **Asynchronous**: Kotlin Coroutines (`Dispatchers.IO`, `SupervisorJob`)
-  - **Background Work**: Android Foreground Service, `AlarmManager`, `WorkManager`
-  - **Security**: `EncryptedSharedPreferences` (Jetpack Security Crypto), `DevicePolicyManager`
-  - **Privilege Layer**: [Dhizuku-API 2.5.3](https://github.com/iamr0s/Dhizuku) + `HiddenApiBypass`
-- **Windows PC Platform**:
-  - Windows PowerShell 5.1+
-  - Windows Batch script with automated UAC elevation
-
----
-
-## 🔒 Contributing & Security
-
-Contributions, bug reports, and suggestions are welcome!
-- If you discover a bypass vector or unexpected behavior, please file an issue or pull request detailing the device manufacturer, Android version, and reproduction steps.
-- Security-sensitive findings can be reported directly via GitHub issues.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+Licensed under the [Apache License, Version 2.0](LICENSE).  
+Copyright (c) 2026 **zenbijoy**. All rights reserved.

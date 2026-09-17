@@ -8,15 +8,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * Feature 1: Boot persistence.
+ * Boot persistence receiver.
  * Triggered on BOOT_COMPLETED and LOCKED_BOOT_COMPLETED.
  *
- * On every boot:
- *  1. Re-applies all DPM restrictions
- *  2. Starts LockMonitorService (ContentObserver real-time watchdog)
- *  3. Schedules AlarmManager chain (every 15 min)
- *  4. Schedules WorkManager NTP sync (every 6 hrs)
- *  5. Updates NTP high-water mark
+ * Actions:
+ *  1. Restores Local DNS VPN Shield (DnsVpnService)
+ *  2. Re-applies Dhizuku DPM restrictions (if available)
+ *  3. Starts LockMonitorService watchdog
+ *  4. Schedules AlarmManager re-apply chain
+ *  5. Schedules WorkManager NTP sync
+ *  6. Refreshes countdown widget and morning/nightly notifications
  */
 class BootReceiver : BroadcastReceiver() {
 
@@ -31,35 +32,33 @@ class BootReceiver : BroadcastReceiver() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // 1. Always restore DNS VPN Shield
+                DnsVpnService.start(context)
+
+                // 2. Check and re-apply Dhizuku if available
                 DhizukuHelper.init(context)
-                if (!DhizukuHelper.isPermissionGranted()) return@launch
+                val dpm = DhizukuHelper.getDpm()
+                val admin = DhizukuHelper.getAdmin()
+                DnsLocker.reVerifyLock(context, dpm, admin)
 
-                val dpm   = DhizukuHelper.getDpm()  ?: return@launch
-                val admin = DhizukuHelper.getAdmin() ?: return@launch
-
-                // 1. Re-apply all restrictions
-                DnsLocker.lockEverything(context, dpm, admin)
-
-                // 2. Fetch fresh NTP time
+                // 3. Fetch fresh NTP time
                 val networkTime = NtpClient.nowMs()
                 TimerManager.updateHighWater(context, networkTime)
 
-                // 3. Start foreground service (ContentObserver real-time watchdog)
+                // 4. Start foreground service watchdog
                 LockMonitorService.start(context)
 
-                // 4. Start AlarmManager chain (every 15 minutes)
+                // 5. Start AlarmManager chain
                 AlarmScheduler.scheduleReApply(context)
 
-                // 5. Start WorkManager NTP sync (every 6 hours)
+                // 6. Start WorkManager NTP sync
                 NtpSyncWorker.schedule(context)
 
-                // 6. Refresh widget
+                // 7. Refresh widget
                 CountdownWidget.requestUpdate(context)
 
-                // 7. Schedule nightly encouragement notification (9:30 PM)
+                // 8. Schedule focus notifications
                 NightlyScheduler.scheduleNext(context)
-
-                // 8. Schedule morning focus directive notification (8:00 AM)
                 MorningScheduler.scheduleNext(context)
 
             } finally {

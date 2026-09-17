@@ -1,5 +1,5 @@
 <resources>
     <style name="Theme.DnsGuard" parent="android:Theme.Material.NoActionBar" />
     <string name="widget_description">DnsGuard 1-year countdown</string>
-    <string name="accessibility_description">Prevents access to Dhizuku and DNS settings screens to protect your 1-year self-control commitment. This service cannot harm your data.</string>
+    <string name="accessibility_description">Protects your strict 1-year addiction recovery commitment by preventing unauthorized tampering with DNS security and Device Administrator settings. This service does not collect or transmit any personal data.</string>
 </resources>

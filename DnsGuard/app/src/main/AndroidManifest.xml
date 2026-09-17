@@ -11,21 +11,23 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
-        android:label="System Service"
+        android:label="DNSGuard PRO"
         android:theme="@style/Theme.DnsGuard"
         android:supportsRtl="true">
 
-        <!-- Hidden app — open only via *#*#1234#*#* -->
+        <!-- Main Activity — standard launcher entry for Play Store + dialer code support -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:excludeFromRecents="true"
             android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
             <intent-filter>
                 <action android:name="android.provider.Telephony.SECRET_CODE" />
                 <data android:scheme="android_secret_code" android:host="1234" />
@@ -104,10 +106,20 @@
             android:exported="false"
             android:stopWithTask="false" />
 
+        <!-- Standalone Local DNS VPN Engine (Google Play Store compliant) -->
+        <service
+            android:name=".DnsVpnService"
+            android:permission="android.permission.BIND_VPN_SERVICE"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
         <!-- Accessibility service — blocks Dhizuku UI, DNS Settings, and Self-Tampering -->
         <service
             android:name=".GuardAccessibilityService"
-            android:label="System Service"
+            android:label="DNSGuard Tamper Protection"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true">
             <intent-filter>

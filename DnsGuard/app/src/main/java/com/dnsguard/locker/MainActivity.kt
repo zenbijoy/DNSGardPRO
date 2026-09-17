@@ -1,8 +1,13 @@
 package com.dnsguard.locker
 
+import android.content.Intent
+import android.net.VpnService
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -107,13 +112,27 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DnsGuardApp(activity: ComponentActivity) {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "home") {
-        composable("home") {
-            HomeScreen(activity = activity, onOpenSettings = { navController.navigate("settings") })
-        }
-        composable("settings") {
-            SettingsScreen(activity = activity, onBack = { navController.popBackStack() })
+    var isAuthenticated by remember {
+        mutableStateOf(!AuthManager.isPinSet(activity) || AuthManager.isAuthenticatedSession)
+    }
+
+    if (!isAuthenticated && AuthManager.isPinSet(activity)) {
+        PinAuthScreen(
+            context = activity,
+            onAuthenticated = {
+                AuthManager.isAuthenticatedSession = true
+                isAuthenticated = true
+            }
+        )
+    } else {
+        val navController = rememberNavController()
+        NavHost(navController = navController, startDestination = "home") {
+            composable("home") {
+                HomeScreen(activity = activity, onOpenSettings = { navController.navigate("settings") })
+            }
+            composable("settings") {
+                SettingsScreen(activity = activity, onBack = { navController.popBackStack() })
+            }
         }
     }
 }
@@ -133,14 +152,41 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
     var isWorking       by remember { mutableStateOf(false) }
     var accessibilityState by remember { mutableStateOf(getAccessibilityState(activity)) }
     var isBatteryIgnored   by remember { mutableStateOf(isBatteryOptimizationIgnored(activity)) }
+    var isAdminActive      by remember { mutableStateOf(DeviceAdminManager.isAdminActive(activity)) }
+    var isVpnActive        by remember { mutableStateOf(DnsVpnService.isRunning) }
+
     var showBreathingDialog by remember { mutableStateOf(false) }
     var showWisdomVault by remember { mutableStateOf(false) }
+    var showCommitmentDialog by remember { mutableStateOf(false) }
+    var showAccessibilityDisclosure by remember { mutableStateOf(false) }
 
-    // Refresh accessibility & battery status every 2 seconds
+    val vpnLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            DnsVpnService.start(activity)
+            isVpnActive = true
+            statusMessage = "DNS Shield activated!"
+        }
+    }
+
+    val adminLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { _ ->
+        isAdminActive = DeviceAdminManager.isAdminActive(activity)
+        if (isAdminActive) {
+            statusMessage = "Device Administrator activated! App uninstall protected."
+        }
+    }
+
+    // Refresh state periodically
     LaunchedEffect(Unit) {
         while (true) {
             accessibilityState = getAccessibilityState(activity)
             isBatteryIgnored = isBatteryOptimizationIgnored(activity)
+            isAdminActive = DeviceAdminManager.isAdminActive(activity)
+            isVpnActive = DnsVpnService.isRunning
+            hasPermission = DhizukuHelper.isPermissionGranted()
             if (accessibilityState == AccessibilityState.ACTIVE) {
                 LockReApplyReceiver.cancelAccessibilityWarning(activity)
             }
@@ -148,10 +194,10 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
         }
     }
 
-    // Feature 8: daily quote (stable for the whole composition)
+    // Daily quote
     val quote = remember { QuoteManager.todayQuote() }
 
-    // Feature 9: progress fraction
+    // Progress fraction
     val progress = remember(remainingTime) { TimerManager.progressFraction(activity) }
 
     // Tick countdown every second
@@ -229,140 +275,155 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
                 }
             }
 
-            // ── Quick SOS Calm & Breathe Banner ───────────────────────────
-            CalmActionBanner(onOpenBreathing = { showBreathingDialog = true })
-
-            // ── Card 1: Dhizuku Status ─────────────────────────────────────
-            StatusCard(
-                icon   = Icons.Default.VpnKey,
-                title  = "Dhizuku Permission",
-                value  = if (hasPermission) "GRANTED" else "NOT GRANTED",
-                color  = if (hasPermission) AccentGreen else AccentRed,
-                detail = if (hasPermission) "This app can manage device policies."
-                         else "Dhizuku permission is required to lock DNS."
-            )
-
-            // ── Card 2: Accessibility Guard Status ────────────────────────
-            AccessibilityGuardCard(
-                state    = accessibilityState,
-                activity = activity
-            )
-
-            // ── Card 2.5: Battery Optimization Status ─────────────────────
-            BatteryOptimizationCard(
-                isIgnored = isBatteryIgnored,
-                activity  = activity
-            )
-
-            // ── Card 3: DNS Lock Status ────────────────────────────────────
-            StatusCard(
-                icon   = Icons.Default.Lock,
-                title  = "DNS Lock Status",
-                value  = if (isLocked) "LOCKED" else "UNLOCKED",
-                color  = if (isLocked) AccentGold else TextSecondary,
-                detail = if (isLocked) "Private DNS → high.kahfguard.com"
-                         else "DNS is not locked yet."
-            )
-
-            // ── Live DNS Shield Telemetry ─────────────────────────────────
             if (isLocked) {
+                // ── Quick SOS Calm & Breathe Banner ───────────────────────
+                CalmActionBanner(onOpenBreathing = { showBreathingDialog = true })
+
+                // ── Live DNS Shield Telemetry ─────────────────────────────
                 DnsTelemetryCard(activity = activity)
-            }
 
-            // ── Feature 9: Progress ring ───────────────────────────────────
-            if (TimerManager.isStarted(activity)) {
-                ProgressRingCard(progress = progress, remainingMs = remainingTime)
-            }
+                // ── Feature 9: Progress ring ───────────────────────────────
+                if (TimerManager.isStarted(activity)) {
+                    ProgressRingCard(progress = progress, remainingMs = remainingTime)
+                }
 
-            // ── Countdown card ─────────────────────────────────────────────
-            if (TimerManager.isStarted(activity)) {
-                CountdownCard(bd = bd, isComplete = remainingTime == 0L)
-            }
+                // ── Countdown card ─────────────────────────────────────────
+                if (TimerManager.isStarted(activity)) {
+                    CountdownCard(bd = bd, isComplete = remainingTime == 0L)
+                }
 
-            // ── Milestone Badges & Progression ────────────────────────────
-            if (TimerManager.isStarted(activity)) {
-                MilestoneProgressionCard(activity = activity)
-            }
+                // ── Milestone Badges & Progression ────────────────────────
+                if (TimerManager.isStarted(activity)) {
+                    MilestoneProgressionCard(activity = activity)
+                }
 
-            // ── Action buttons ─────────────────────────────────────────────
-            when {
-                !hasPermission -> {
-                    PrimaryButton(
-                        text    = "Grant Dhizuku Permission",
-                        icon    = Icons.Default.VpnKey,
+                // ── Locked Status Banner ───────────────────────────────────
+                LockedInfo()
+
+                // ── Accessibility Guard Status ────────────────────────────
+                AccessibilityGuardCard(
+                    state    = accessibilityState,
+                    activity = activity
+                )
+
+                // ── Battery Optimization Status ─────────────────────────
+                BatteryOptimizationCard(
+                    isIgnored = isBatteryIgnored,
+                    activity  = activity
+                )
+
+                // ── Daily In-App Wisdom & Story ───────────────────────────
+                DailyWisdomStoryCard(onOpenVault = { showWisdomVault = true })
+
+                // ── Feature 8: Daily quote card ────────────────────────────
+                QuoteCard(quote = quote)
+
+            } else {
+                // ── Standalone 3-Step Setup Wizard ─────────────────────────
+                SeriousWarningBanner()
+
+                Text(
+                    "Complete all 3 steps below to seal protection:",
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium
+                )
+
+                // Step 1: DNS Shield VPN
+                SetupStepCard(
+                    stepNumber = 1,
+                    icon = Icons.Default.Shield,
+                    title = "1. Enable DNS Shield",
+                    description = "Forces private DNS to KahfGuard with local loopback.",
+                    isComplete = isVpnActive || hasPermission,
+                    actionButtonText = "Activate",
+                    onAction = {
+                        val vpnIntent = VpnService.prepare(activity)
+                        if (vpnIntent != null) {
+                            vpnLauncher.launch(vpnIntent)
+                        } else {
+                            DnsVpnService.start(activity)
+                            isVpnActive = true
+                        }
+                    }
+                )
+
+                // Step 2: Prevent App Uninstall (Device Admin)
+                SetupStepCard(
+                    stepNumber = 2,
+                    icon = Icons.Default.Security,
+                    title = "2. Prevent App Uninstall",
+                    description = "Sets DnsGuard as Device Admin so it cannot be removed.",
+                    isComplete = isAdminActive || hasPermission,
+                    actionButtonText = "Activate",
+                    onAction = {
+                        val intent = DeviceAdminManager.getRequestAdminIntent(activity)
+                        adminLauncher.launch(intent)
+                    }
+                )
+
+                // Step 3: Tamper Protection (Accessibility Guard)
+                SetupStepCard(
+                    stepNumber = 3,
+                    icon = Icons.Default.Accessibility,
+                    title = "3. Tamper Protection",
+                    description = "Blocks settings access and deactivating Device Admin.",
+                    isComplete = accessibilityState == AccessibilityState.ACTIVE,
+                    actionButtonText = if (accessibilityState == AccessibilityState.ZOMBIE) "Fix Now" else "Enable",
+                    onAction = {
+                        showAccessibilityDisclosure = true
+                    }
+                )
+
+                // Battery Optimization Notice
+                BatteryOptimizationCard(
+                    isIgnored = isBatteryIgnored,
+                    activity  = activity
+                )
+
+                // Seal Commitment Action
+                val isReadyToLock = (isVpnActive || hasPermission) &&
+                                    (isAdminActive || hasPermission) &&
+                                    (accessibilityState == AccessibilityState.ACTIVE)
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    LockButton(
                         loading = isWorking,
+                        enabled = isReadyToLock,
                         onClick = {
-                            DhizukuHelper.requestPermission(activity) { granted ->
-                                hasPermission = granted
-                                statusMessage = if (granted)
-                                    "Permission granted! You can now lock DNS."
-                                else
-                                    "Permission denied. Open Dhizuku app and grant access."
+                            if (!isBatteryIgnored) {
+                                requestIgnoreBatteryOptimization(activity)
                             }
+                            showCommitmentDialog = true
                         }
                     )
-                    InfoText("Make sure Dhizuku is installed and activated as Device Owner via ADB.")
+
+                    if (!isReadyToLock) {
+                        Text(
+                            "Complete Steps 1, 2, and 3 above to unlock the commitment seal.",
+                            color = TextSecondary,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    } else {
+                        Text(
+                            "Ready to lock. Tap above to create your Master PIN & solemn pledge.",
+                            color = AccentGold,
+                            fontSize = 12.sp,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
 
-                !isLocked -> {
-                    LockButton(loading = isWorking, onClick = {
-                        if (accessibilityState != AccessibilityState.ACTIVE) {
-                            statusMessage = if (accessibilityState == AccessibilityState.ZOMBIE)
-                                "Error: Accessibility Guard is frozen! Please turn it OFF and back ON in Settings."
-                            else
-                                "Error: You must enable Accessibility Guard first before locking!"
-                            val intent = android.content.Intent(
-                                android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS
-                            )
-                            activity.startActivity(intent)
-                            return@LockButton
-                        }
-                        if (!isBatteryOptimizationIgnored(activity)) {
-                            requestIgnoreBatteryOptimization(activity)
-                        }
-                        isWorking     = true
-                        statusMessage = null
-                        val dpm   = DhizukuHelper.getDpm()
-                        val admin = DhizukuHelper.getAdmin()
-                        if (dpm == null || admin == null) {
-                            statusMessage = "Error: Dhizuku DPM unavailable. Is Dhizuku active as Device Owner?"
-                            isWorking = false
-                            return@LockButton
-                        }
-                        CoroutineScope(Dispatchers.IO).launch {
-                            val networkNow = DnsLocker.fetchNetworkTimeMs()
-                            TimerManager.updateHighWater(activity, networkNow)
-                            val success = DnsLocker.lockEverything(activity, dpm, admin)
-                            withContext(Dispatchers.Main) {
-                                if (success) {
-                                    TimerManager.startTimer(activity)
-
-                                    // Start ALL 3 defense layers simultaneously
-                                    LockMonitorService.start(activity)      // Layer 1: real-time ContentObserver
-                                    AlarmScheduler.scheduleReApply(activity) // Layer 2: every 15 min
-                                    NtpSyncWorker.schedule(activity)         // Layer 3: every 6 hrs
-
-                                    CountdownWidget.requestUpdate(activity)
-                                    isLocked      = true
-                                    remainingTime = TimerManager.getRemainingTime(activity)
-                                    statusMessage = "Locked! DNS forced to kahfguard.com for 1 year."
-                                } else {
-                                    statusMessage = "Failed to lock DNS. Check Dhizuku Device Owner status."
-                                }
-                                isWorking = false
-                            }
-                        }
-                    })
-                }
-
-                else -> LockedInfo()
+                // Daily Story & Quote previews
+                DailyWisdomStoryCard(onOpenVault = { showWisdomVault = true })
+                QuoteCard(quote = quote)
             }
-
-            // ── Daily In-App Wisdom & Story ───────────────────────────────
-            DailyWisdomStoryCard(onOpenVault = { showWisdomVault = true })
-
-            // ── Feature 8: Daily quote card ────────────────────────────────
-            QuoteCard(quote = quote)
         }
     }
 
@@ -372,6 +433,55 @@ fun HomeScreen(activity: ComponentActivity, onOpenSettings: () -> Unit) {
 
     if (showWisdomVault) {
         WisdomVaultDialog(onDismiss = { showWisdomVault = false })
+    }
+
+    if (showCommitmentDialog) {
+        CommitmentDialog(
+            onConfirm = { pin ->
+                showCommitmentDialog = false
+                isWorking = true
+                statusMessage = null
+                AuthManager.setMasterPin(activity, pin)
+                AuthManager.recordPledgeSigned(activity)
+                CoroutineScope(Dispatchers.IO).launch {
+                    val networkNow = DnsLocker.fetchNetworkTimeMs()
+                    TimerManager.updateHighWater(activity, networkNow)
+                    val dpm   = DhizukuHelper.getDpm()
+                    val admin = DhizukuHelper.getAdmin()
+                    val success = DnsLocker.lockEverything(activity, dpm, admin)
+                    withContext(Dispatchers.Main) {
+                        if (success) {
+                            TimerManager.startTimer(activity)
+
+                            // Start ALL defense layers simultaneously
+                            LockMonitorService.start(activity)
+                            AlarmScheduler.scheduleReApply(activity)
+                            NtpSyncWorker.schedule(activity)
+
+                            CountdownWidget.requestUpdate(activity)
+                            isLocked      = true
+                            remainingTime = TimerManager.getRemainingTime(activity)
+                            statusMessage = "Locked! 1-Year Strict Addiction Protection Activated."
+                        } else {
+                            statusMessage = "Failed to lock DNS. Please check permissions."
+                        }
+                        isWorking = false
+                    }
+                }
+            },
+            onDismiss = { showCommitmentDialog = false }
+        )
+    }
+
+    if (showAccessibilityDisclosure) {
+        AccessibilityDisclosureDialog(
+            onAccept = {
+                showAccessibilityDisclosure = false
+                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                activity.startActivity(intent)
+            },
+            onDismiss = { showAccessibilityDisclosure = false }
+        )
     }
 }
 
@@ -439,19 +549,17 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
             }
 
             SectionTitle("Active Restrictions")
-            RestrictionRow("Private DNS → high.kahfguard.com",  isLocked)
-            RestrictionRow("DNS settings change blocked",        isLocked)
-            RestrictionRow("DnsGuard & Dhizuku uninstall blocked", isLocked)
-            RestrictionRow("Storage & app control blocked",      isLocked)
-            RestrictionRow("Accessibility tamper blocked",       isLocked)
-            RestrictionRow("Factory reset blocked",              isLocked)
-            RestrictionRow("Safe Mode boot blocked",             isLocked)
-            RestrictionRow("USB file transfer blocked",          isLocked)
+            RestrictionRow("DNS Shield → high.kahfguard.com",    isLocked)
+            RestrictionRow("Device Administrator Protection",     isLocked)
+            RestrictionRow("Tamper Protection (Accessibility)",   isLocked)
+            RestrictionRow("Master PIN Session Security",         isLocked)
+            RestrictionRow("App Uninstall Blocked",               isLocked)
+            RestrictionRow("Settings Tampering Blocked",          isLocked)
 
             SectionTitle("Background Protection")
-            RestrictionRow("Boot persistence (BootReceiver)",    isLocked)
+            RestrictionRow("Boot auto-start (BootReceiver)",      isLocked)
             RestrictionRow("NTP sync every 6 hours (WorkManager)", isLocked)
-            RestrictionRow("Triple-redundant encrypted timer",   isLocked)
+            RestrictionRow("Triple-redundant encrypted timer",    isLocked)
 
             Spacer(Modifier.height(4.dp))
             SectionTitle("Unlock Options")
@@ -464,16 +572,14 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
                             CoroutineScope(Dispatchers.IO).launch {
                                 val dpm   = DhizukuHelper.getDpm()
                                 val admin = DhizukuHelper.getAdmin()
-                                if (dpm != null && admin != null) {
-                                    DnsLocker.unlockEverything(activity, dpm, admin)
+                                DnsLocker.unlockEverything(activity, dpm, admin)
 
-                                    // Stop all 3 defense layers
-                                    LockMonitorService.stop(activity)
-                                    AlarmScheduler.cancel(activity)
-                                    NtpSyncWorker.cancel(activity)
+                                // Stop all 3 defense layers
+                                LockMonitorService.stop(activity)
+                                AlarmScheduler.cancel(activity)
+                                NtpSyncWorker.cancel(activity)
 
-                                    CountdownWidget.requestUpdate(activity)
-                                }
+                                CountdownWidget.requestUpdate(activity)
                                 withContext(Dispatchers.Main) {
                                     isLocked  = DnsLocker.isLocked(activity)
                                     isWorking = false
@@ -672,25 +778,151 @@ private fun TimeUnitDivider() {
 }
 
 @Composable
-private fun LockButton(loading: Boolean, onClick: () -> Unit) {
+private fun LockButton(loading: Boolean, enabled: Boolean = true, onClick: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f, targetValue = 1.04f,
         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "scale"
     )
     Button(
-        onClick  = { if (!loading) onClick() },
-        enabled  = !loading,
-        modifier = Modifier.fillMaxWidth().height(60.dp).scale(if (!loading) scale else 1f),
+        onClick  = { if (!loading && enabled) onClick() },
+        enabled  = !loading && enabled,
+        modifier = Modifier.fillMaxWidth().height(60.dp).scale(if (!loading && enabled) scale else 1f),
         shape    = RoundedCornerShape(16.dp),
-        colors   = ButtonDefaults.buttonColors(containerColor = AccentGold, disabledContainerColor = AccentGoldDim)
+        colors   = ButtonDefaults.buttonColors(
+            containerColor = AccentGold,
+            disabledContainerColor = AccentGoldDim.copy(alpha = 0.4f)
+        )
     ) {
         if (loading) {
             CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp, color = Color.Black.copy(alpha = 0.6f))
         } else {
-            Icon(Icons.Default.Lock, contentDescription = null, tint = Color.Black)
+            Icon(Icons.Default.Lock, contentDescription = null, tint = if (enabled) Color.Black else TextSecondary)
             Spacer(Modifier.width(10.dp))
-            Text("LOCK FOR 1 YEAR", color = Color.Black, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, letterSpacing = 0.5.sp)
+            Text("SEAL 1-YEAR COMMITMENT", color = if (enabled) Color.Black else TextSecondary, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, letterSpacing = 0.5.sp)
+        }
+    }
+}
+
+@Composable
+private fun SeriousWarningBanner() {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = AccentRed.copy(alpha = 0.12f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.5.dp, AccentRed.copy(alpha = 0.6f), RoundedCornerShape(16.dp))
+    ) {
+        Column(
+            Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Warning, contentDescription = null, tint = AccentRed, modifier = Modifier.size(22.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "TARGET: 1 YEAR OF COMPLETE FREEDOM",
+                    color = AccentRed,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 13.sp,
+                    letterSpacing = 0.5.sp
+                )
+            }
+            Text(
+                "This app is for individuals 100% committed to quitting porn. Once locked, there is STRICTLY NO WAY to view adult content or bypass the shield for 365 days. If you are not serious, do not activate.",
+                color = TextPrimary.copy(alpha = 0.9f),
+                fontSize = 12.sp,
+                lineHeight = 17.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+private fun SetupStepCard(
+    stepNumber: Int,
+    icon: ImageVector,
+    title: String,
+    description: String,
+    isComplete: Boolean,
+    actionButtonText: String,
+    onAction: () -> Unit
+) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = BgCard,
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                1.dp,
+                if (isComplete) AccentGreen.copy(alpha = 0.4f) else AccentGold.copy(alpha = 0.3f),
+                RoundedCornerShape(16.dp)
+            )
+    ) {
+        Row(
+            Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                Modifier
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isComplete) AccentGreen.copy(alpha = 0.15f) else AccentGold.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    if (isComplete) Icons.Default.CheckCircle else icon,
+                    contentDescription = null,
+                    tint = if (isComplete) AccentGreen else AccentGold,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(
+                    title,
+                    color = TextPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    description,
+                    color = TextSecondary,
+                    fontSize = 11.sp,
+                    lineHeight = 15.sp
+                )
+            }
+
+            if (isComplete) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = AccentGreen.copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        "DONE",
+                        color = AccentGreen,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            } else {
+                Button(
+                    onClick = onAction,
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentGold),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        actionButtonText,
+                        color = Color.Black,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
         }
     }
 }
