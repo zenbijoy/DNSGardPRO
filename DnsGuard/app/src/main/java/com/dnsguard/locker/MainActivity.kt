@@ -510,6 +510,9 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
     var isLocked      by remember { mutableStateOf(DnsLocker.isLocked(activity)) }
     var remainingTime by remember { mutableStateOf(TimerManager.getRemainingTime(activity)) }
     var isWorking     by remember { mutableStateOf(false) }
+    var isBlockDevOptions by remember {
+        mutableStateOf(SecurityPreferences.isBlockDeveloperOptionsEnabled(activity))
+    }
 
     val yearPassed = TimerManager.isYearPassed(activity)
     val bd         = remember(remainingTime) { TimerManager.breakdown(remainingTime) }
@@ -569,6 +572,53 @@ fun SettingsScreen(activity: ComponentActivity, onBack: () -> Unit) {
             RestrictionRow("Master PIN Session Security",         isLocked)
             RestrictionRow("App Uninstall Blocked",               isLocked)
             RestrictionRow("Settings Tampering Blocked",          isLocked)
+            if (isBlockDevOptions) {
+                RestrictionRow("Developer Options & USB Debugging Blocked", isLocked)
+            }
+
+            SectionTitle("Optional Strictness Controls")
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = BgCard,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Block Developer Mode & USB Debugging",
+                            color = TextPrimary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Optional defense against ADB tampering. Keep OFF (default) so that USB charging, Android Auto, OTG, and developer features work freely without interruption.",
+                            color = TextSecondary,
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Switch(
+                        checked = isBlockDevOptions,
+                        onCheckedChange = { checked ->
+                            isBlockDevOptions = checked
+                            SecurityPreferences.setBlockDeveloperOptionsEnabled(activity, checked)
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = AccentGold,
+                            uncheckedThumbColor = TextSecondary,
+                            uncheckedTrackColor = BgSurface
+                        )
+                    )
+                }
+            }
 
             SectionTitle("Background Protection")
             RestrictionRow("Boot auto-start (BootReceiver)",      isLocked)

@@ -73,9 +73,13 @@ class GuardAccessibilityService : AccessibilityService() {
             "resetdashboard",
             "datetime",
             "dateandtime",
-            "developermode",
-            "developmentsettings",
             "vpndialogpreference"
+        )
+
+        // Optional developer mode activity substrings (disabled by default so USB charging & developer mode work)
+        private val OPTIONAL_DEV_CLASS_SUBSTRINGS = listOf(
+            "developermode",
+            "developmentsettings"
         )
 
         // Keywords that, if seen in Settings, indicate tampering with DNS, Admin, Storage, Accessibility, Reset, or Clock
@@ -104,8 +108,6 @@ class GuardAccessibilityService : AccessibilityService() {
             "erase all data",
             "reset options",
             "reset phone",
-            "developer options",
-            "usb debugging",
             "date & time",
             "date and time",
             "set time",
@@ -114,6 +116,12 @@ class GuardAccessibilityService : AccessibilityService() {
             "use network-provided time",
             "vpn",
             "always-on vpn"
+        )
+
+        // Optional strictness keywords (disabled by default so USB charging & developer mode work)
+        private val OPTIONAL_DEV_KEYWORDS = listOf(
+            "developer options",
+            "usb debugging"
         )
 
         @Volatile
@@ -200,21 +208,26 @@ class GuardAccessibilityService : AccessibilityService() {
 
             // ── Block 3: Settings screens (DNS, Accessibility, App Storage, Device Admin) ──
             if (isSettings) {
+                val isDevBlockEnabled = SecurityPreferences.isBlockDeveloperOptionsEnabled(this)
+
                 // 1. In-memory check on activity class
                 val clazzLower = clazz.lowercase()
-                if (clazz in BLOCKED_ACTIVITY_CLASSES || BLOCKED_CLASS_SUBSTRINGS.any { clazzLower.contains(it) }) {
+                if (clazz in BLOCKED_ACTIVITY_CLASSES ||
+                    BLOCKED_CLASS_SUBSTRINGS.any { clazzLower.contains(it) } ||
+                    (isDevBlockEnabled && OPTIONAL_DEV_CLASS_SUBSTRINGS.any { clazzLower.contains(it) })) {
                     goHome()
                     return
                 }
 
                 // 2. In-memory check on event text
-                if (eventTextMatches(event, BLOCKED_SETTINGS_KEYWORDS)) {
+                if (eventTextMatches(event, BLOCKED_SETTINGS_KEYWORDS) ||
+                    (isDevBlockEnabled && eventTextMatches(event, OPTIONAL_DEV_KEYWORDS))) {
                     goHome()
                     return
                 }
 
                 // 3. Hierarchy check with safe node recycling
-                if (hasBlockedKeywordSafe()) {
+                if (hasBlockedKeywordSafe(isDevBlockEnabled)) {
                     goHome()
                     return
                 }
@@ -251,10 +264,15 @@ class GuardAccessibilityService : AccessibilityService() {
         }.getOrDefault(false)
     }
 
-    private fun hasBlockedKeywordSafe(): Boolean {
+    private fun hasBlockedKeywordSafe(includeDevOptions: Boolean): Boolean {
         val root = runCatching { rootInActiveWindow }.getOrNull() ?: return false
+        val keywords = if (includeDevOptions) {
+            BLOCKED_SETTINGS_KEYWORDS + OPTIONAL_DEV_KEYWORDS
+        } else {
+            BLOCKED_SETTINGS_KEYWORDS
+        }
         return try {
-            for (keyword in BLOCKED_SETTINGS_KEYWORDS) {
+            for (keyword in keywords) {
                 val matches = root.findAccessibilityNodeInfosByText(keyword)
                 if (!matches.isNullOrEmpty()) {
                     matches.forEach { runCatching { it.recycle() } }

@@ -211,7 +211,7 @@ stateDiagram-v2
         ScanNodeHierarchy --> MatchForbiddenVectors: Inspect Class Name, Text & Content Description
     }
 
-    MatchForbiddenVectors --> NeutralizeThreat: Matches "uninstall", "deactivate", "clear data", "force stop", "private dns", "date & time", "developer options"
+    MatchForbiddenVectors --> NeutralizeThreat: Matches "uninstall", "deactivate", "clear data", "force stop", "private dns", "date & time" (+ optional "developer options")
     MatchForbiddenVectors --> IdleMonitoring: Clean Window Event
 
     state NeutralizeThreat {
@@ -305,6 +305,7 @@ graph LR
 | **Layer 6: Anti-Clock Tampering** | `NtpSyncWorker` (WorkManager) | Queries atomic network clocks (`pool.ntp.org`) every 6 hours to prevent manual date spoofing. |
 | **Layer 7: Cryptographic Timer** | `EncryptedSharedPreferences` (AES-256) | Triple-redundant encrypted storage for high-water marks and countdown progress. |
 | **Layer 8: Urge Surfing Emergency** | `UrgeSurfingDialog` (Compose) | 15-minute neurochemical craving surge barrier with guided 4-4 breathing and mental armor. |
+| **Layer 9: Optional Strictness** | `SecurityPreferences` (User Toggle) | Configurable blocking of Developer Options & USB Debugging (default OFF so USB charging, Android Auto, and OTG data work freely). |
 
 ---
 
